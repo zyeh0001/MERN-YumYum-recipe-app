@@ -1,0 +1,102 @@
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import { searchRecipes, reset } from '../features/recipe/recipeSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { BiSearchAlt } from 'react-icons/bi';
+import RecipeItem from '../component/recipeLayout/RecipeItem';
+
+function RecipeList() {
+  const [text, setText] = useState('');
+  const [limit, setLimit] = useState(10);
+  const dispatch = useDispatch();
+  const { recipes, isSuccess, isError, message } = useSelector(
+    (state) => state.recipe
+  );
+
+  useEffect(() => {
+    if (text !== '') {
+      dispatch(searchRecipes({ text: text, limit: limit }));
+    }
+    //eslint-disable-next-line
+  }, [limit]);
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+    }
+  }, [isError, isSuccess, message]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (text === '') {
+      toast.error('Please Enter Something');
+    } else {
+      console.log(limit);
+      dispatch(searchRecipes({ text: text, limit: limit }));
+      // setText('');
+    }
+  };
+  const handleChange = (e) => {
+    setText(e.target.value);
+  };
+
+  // if (isLoading) return <Spinner />;
+
+  return (
+    <>
+      {' '}
+      <div className='grid grid-cols-1 md:grid-cols-4 mb-8 gap-8 mt-5'>
+        <div className='col-span-2 col-start-2'>
+          <form onSubmit={handleSubmit}>
+            <div className='relative'>
+              <input
+                type='text'
+                placeholder='Search'
+                className='w-full input input-bordered input-primary input-md text-black '
+                value={text}
+                onChange={handleChange}
+              />
+              <button className='absolute top-0 right-0 text-neutral  btn-md text-lg hover:scale-125'>
+                <BiSearchAlt />
+              </button>
+            </div>
+          </form>
+        </div>
+        {recipes.length > 0 && (
+          <div>
+            <button
+              onClick={() => {
+                dispatch(reset());
+                setText('');
+                setLimit(10);
+              }}
+              className='btn btn-md bg-purple-400 text-neutral hover:bg-purple-200'
+            >
+              Clear
+            </button>
+          </div>
+        )}
+      </div>
+      {recipes.length > 0 && (
+        <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3 mb-7'>
+          {recipes.map((recipe, i) => (
+            <RecipeItem key={i} recipe={recipe} recipeId={recipe.id} />
+          ))}
+        </div>
+      )}
+      {recipes.length > 0 && (
+        <div className='flex justify-center mb-10'>
+          <button
+            onClick={() => {
+              setLimit((prev) => prev + 10);
+            }}
+            className='btn btn-neutral btn-sm btn-outline'
+          >
+            Load more
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default RecipeList;
