@@ -2,18 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import BackButton from '../component/BackButton';
 import Spinner from '../component/Spinner';
-import { getRecipe } from '../features/recipe/recipeSlice';
+import { getRecipe, addToUserFav } from '../features/recipe/recipeSlice';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AiOutlineClockCircle } from 'react-icons/ai';
 import { MdOutlinePeopleOutline } from 'react-icons/md';
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
+import { getUsername, getUserFav } from '../features/auth/authSlice';
 
 function Recipe() {
   const [activePad, setActivePad] = useState('summary');
+  const [addedFav, setAddedFav] = useState(false);
   const dispatch = useDispatch();
-  const { recipe, isError, isLoading, message } = useSelector(
+  const { recipe, isError, isLoading, message, isSuccess } = useSelector(
     (state) => state.recipe
   );
+  const { user, username } = useSelector((state) => state.auth);
   const { recipeId } = useParams();
 
   useEffect(() => {
@@ -21,8 +25,92 @@ function Recipe() {
       toast.error(message);
     }
     dispatch(getRecipe(recipeId));
+
     //eslint-disable-next-line
   }, [isError, message, recipeId]);
+
+  useEffect(() => {
+    dispatch(getUserFav(user._id));
+    if (recipe.user && username === null) {
+      dispatch(getUsername(recipe.user));
+    }
+  }, [dispatch, recipe.user, user._id, username]);
+
+  // useEffect(() => {
+  //   const addToFav = (recipe) => {
+  //     //handle add to fav
+  //     dispatch(addToUserFav(recipe));
+  //     if (isSuccess) {
+  //       toast.success('Added to Favorite');
+  //     }
+  //   };
+
+  //   if (addedFav) {
+  //     const addItem = {
+  //       _id: recipeId,
+  //       user: recipe.user ? recipe.user : null,
+  //       sourceUrl: recipe.sourceUrl ? recipe.sourceUrl : null,
+  //       title: recipe.title,
+  //       image: recipe.image,
+  //       summary: recipe.summary,
+  //       readyInMinutes: recipe.readyInMinutes,
+  //       servings: recipe.servings,
+  //       ingredients: recipe.ingredients
+  //         ? recipe.ingredients
+  //         : recipe.extendedIngredients,
+  //       steps: recipe.steps ? recipe.steps : recipe.instructions,
+  //     };
+  //     // console.log(addItem);
+  //     addToFav(addItem);
+  //   } else {
+  //     //handle delete fav
+  //     // console.log(addedFav);
+  //     // console.log('delete');
+  //   }
+  //   //eslint-disable-next-line
+  // }, [addedFav, recipeId]);
+
+  useEffect(() => {
+    const isAlreadyFav = checkIfFav(user.favCollection, recipeId);
+    console.log(`isAlreadyFav: ${isAlreadyFav}`);
+    if (isAlreadyFav) {
+      setAddedFav(true);
+    }
+  }, []);
+
+  const checkIfFav = (favCollection, recipeId) => {
+    let isAlreadyFav = false;
+    console.log(favCollection);
+    favCollection.forEach((favItem) => {
+      if (favItem._id === recipeId) {
+        isAlreadyFav = true;
+        return isAlreadyFav;
+      }
+    });
+    return isAlreadyFav;
+  };
+
+  const addToFav = () => {
+    const addItem = {
+      _id: recipeId,
+      user: recipe.user ? recipe.user : null,
+      sourceUrl: recipe.sourceUrl ? recipe.sourceUrl : null,
+      title: recipe.title,
+      image: recipe.image,
+      summary: recipe.summary,
+      readyInMinutes: recipe.readyInMinutes,
+      servings: recipe.servings,
+      ingredients: recipe.ingredients
+        ? recipe.ingredients
+        : recipe.extendedIngredients,
+      steps: recipe.steps ? recipe.steps : recipe.instructions,
+    };
+    dispatch(addToUserFav(addItem));
+    dispatch(getUserFav(user._id));
+    if (isSuccess) {
+      toast.success('Added to Favorite');
+    }
+  };
 
   if (isLoading) return <Spinner />;
 
@@ -30,12 +118,25 @@ function Recipe() {
 
   return (
     <div className='mt-5 mb-7'>
-      <BackButton url={recipe.sourceUrl ? '/recipe-list' : '/profile'} />
+      <BackButton url={recipe.imageType ? '/recipe-list' : '/profile'} />
       <div className='grid sm:grid-cols-2 gap-2 sm:gap-5 mt-5'>
         <div>
-          <h1 className='text-3xl font-bold flex pr-3 mb-5 capitalize'>
-            {recipe.title}
-          </h1>
+          <div className='flex'>
+            <h1 className='text-3xl font-bold flex pr-3 mb-5 capitalize'>
+              {recipe.title}
+            </h1>
+            {recipe.sourceUrl && (
+              <button
+                onClick={() => {
+                  window.open(`${recipe.sourceUrl}`, '_blank');
+                }}
+                className='btn btn-neutral btn-outline btn-sm mt-1'
+              >
+                View On Site
+              </button>
+            )}
+          </div>
+
           <img
             src={recipe.image}
             alt='recipe'
@@ -43,11 +144,9 @@ function Recipe() {
           />
         </div>
         <div>
-          <div className='mb-3 -mt-2'>
+          <div className='mb-3 -mt-2 flex space-x-5'>
             <button
-              onClick={() => {
-                setActivePad('summary');
-              }}
+              onClick={() => setActivePad('summary')}
               className={
                 activePad === 'summary'
                   ? 'btn btn-primary hover:btn-secondary'
@@ -62,12 +161,31 @@ function Recipe() {
               }}
               className={
                 activePad === 'instructions'
-                  ? 'btn btn-neutral ml-5 '
-                  : 'btn btn-neutral btn-outline ml-5'
+                  ? 'btn btn-neutral'
+                  : 'btn btn-neutral btn-outline'
               }
             >
               Instructions
             </button>
+
+            <div
+              className='tooltip tooltip-error tooltip-right'
+              data-tip='Add to Fav'
+            >
+              <button
+                className='mt-3'
+                onClick={() => {
+                  setAddedFav((prev) => !prev);
+                  addToFav();
+                }}
+              >
+                {addedFav === true ? (
+                  <AiFillHeart className='text-xl text-red-400' />
+                ) : (
+                  <AiOutlineHeart className='text-xl ' />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* summary */}
@@ -85,6 +203,10 @@ function Recipe() {
                   <span className='ml-1'>{`${recipe.servings} serving`}</span>
                 </div>
               </div>
+
+              <p className='mt-5'>{`Recipe From: ${
+                recipe.user ? username : recipe.sourceName
+              }`}</p>
             </div>
           )}
 

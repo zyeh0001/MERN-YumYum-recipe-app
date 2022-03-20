@@ -67,6 +67,24 @@ export const getUsername = createAsyncThunk(
   }
 );
 
+//get username
+export const getUserFav = createAsyncThunk(
+  'auth/getUserFav',
+  async (id, thunkAPI) => {
+    try {
+      return await authService.getUserFav(id);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -113,6 +131,7 @@ export const authSlice = createSlice({
       })
       .addCase(getUsername.pending, (state) => {
         state.isLoading = true;
+        // state.username = null;
       })
       .addCase(getUsername.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -122,6 +141,19 @@ export const authSlice = createSlice({
       .addCase(getUsername.rejected, (state, action) => {
         state.isLoading = false;
         state.username = null;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(getUserFav.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getUserFav.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user.favCollection = action.payload;
+      })
+      .addCase(getUserFav.rejected, (state, action) => {
+        state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       });

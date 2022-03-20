@@ -20,6 +20,9 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    favCollection: {
+      type: Array,
+    },
   },
   {
     timestamps: true,

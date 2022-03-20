@@ -114,6 +114,46 @@ export const deleteRecipe = createAsyncThunk(
   }
 );
 
+//delete single recipe
+export const deleteFavRecipe = createAsyncThunk(
+  'recipe/deleteFav',
+  async (recipeId, thunkAPI) => {
+    try {
+      //get the token from user in auth user
+      const token = thunkAPI.getState().auth.user.token;
+
+      return await recipeService.deleteFavRecipe(recipeId, token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+export const addToUserFav = createAsyncThunk(
+  'recipe/addToFav',
+  async (recipeData, thunkAPI) => {
+    try {
+      console.log(recipeData);
+      const token = thunkAPI.getState().auth.user.token;
+      return await recipeService.addToUserFav(recipeData, token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 //search recipes from spoonacular api
 export const searchRecipes = createAsyncThunk(
   'recipe/search',
@@ -177,6 +217,7 @@ export const recipeSlice = createSlice({
       .addCase(getRecipes.pending, (state) => {
         state.isLoading = true;
         state.isSuccess = false;
+        state.createSuccess = false;
       })
       .addCase(getRecipes.fulfilled, (state, action) => {
         state.isSuccess = true;
@@ -186,11 +227,13 @@ export const recipeSlice = createSlice({
       .addCase(getRecipes.rejected, (state, action) => {
         state.isLoading = true;
         state.isSuccess = false;
+        state.createSuccess = false;
         state.isError = true;
         state.message = action.payload;
       })
       .addCase(getRecipe.pending, (state) => {
         state.isLoading = true;
+        state.createSuccess = false;
         state.isSuccess = false;
       })
       .addCase(getRecipe.fulfilled, (state, action) => {
@@ -200,12 +243,14 @@ export const recipeSlice = createSlice({
       })
       .addCase(getRecipe.rejected, (state, action) => {
         state.isLoading = true;
+        state.createSuccess = false;
         state.isError = true;
         state.message = action.payload;
       })
       .addCase(searchRecipes.pending, (state) => {
         state.isLoading = true;
         state.isSuccess = false;
+        state.createSuccess = false;
       })
       .addCase(searchRecipes.fulfilled, (state, action) => {
         state.isSuccess = true;
@@ -214,11 +259,13 @@ export const recipeSlice = createSlice({
       })
       .addCase(searchRecipes.rejected, (state, action) => {
         state.isLoading = false;
+        state.createSuccess = false;
         state.isError = true;
         state.message = action.payload;
       })
       .addCase(deleteRecipe.pending, (state) => {
         state.isLoading = true;
+        state.createSuccess = false;
         state.isSuccess = false;
       })
       .addCase(deleteRecipe.fulfilled, (state, action) => {
@@ -233,8 +280,8 @@ export const recipeSlice = createSlice({
       })
       .addCase(updateRecipe.pending, (state) => {
         state.isLoading = true;
-        state.isSuccess = false;
         state.createSuccess = false;
+        state.isSuccess = false;
       })
       .addCase(updateRecipe.fulfilled, (state, action) => {
         state.createSuccess = true;
@@ -242,6 +289,35 @@ export const recipeSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(updateRecipe.rejected, (state, action) => {
+        state.isLoading = false;
+        state.createSuccess = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(addToUserFav.pending, (state) => {
+        state.isLoading = true;
+        state.createSuccess = false;
+        state.isSuccess = false;
+      })
+      .addCase(addToUserFav.fulfilled, (state, action) => {
+        state.isSuccess = true;
+        state.isLoading = false;
+      })
+      .addCase(addToUserFav.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(deleteFavRecipe.pending, (state) => {
+        state.isLoading = true;
+        state.createSuccess = false;
+        state.isSuccess = false;
+      })
+      .addCase(deleteFavRecipe.fulfilled, (state) => {
+        state.isSuccess = true;
+        state.isLoading = false;
+      })
+      .addCase(deleteFavRecipe.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

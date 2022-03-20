@@ -5,6 +5,8 @@ const spoonacular_url = 'https://api.spoonacular.com/recipes';
 //create new recipe
 
 const createRecipe = async (recipeData, token) => {
+  localStorage.removeItem('profile');
+  console.log('remove localstorage');
   //set up jwt
   const config = {
     headers: {
@@ -17,20 +19,26 @@ const createRecipe = async (recipeData, token) => {
 
 //get recipes
 const getRecipes = async (token) => {
-  //set up jwt
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-  const response = await axios.get(API_URL, config);
-  return response.data;
+  const check = localStorage.getItem('profile');
+  if (check) {
+    return JSON.parse(check);
+  } else {
+    //set up jwt
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const response = await axios.get(API_URL, config);
+    localStorage.setItem('profile', JSON.stringify(response.data));
+    return response.data;
+  }
 };
 
 //get single recipe
 const getRecipe = async (recipeId) => {
   const response = await axios.get(`${API_URL}/${recipeId}`);
-  console.log(response);
+
   if (!response.data.title) {
     const resFromSpoon = await axios.get(
       `${spoonacular_url}/${recipeId}/information?apiKey=${process.env.REACT_APP_RECIPE_API_KEY}`
@@ -43,6 +51,7 @@ const getRecipe = async (recipeId) => {
 
 //delete recipe by recipe id
 const deleteRecipe = async (recipeId, token) => {
+  localStorage.removeItem('profile');
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -52,14 +61,42 @@ const deleteRecipe = async (recipeId, token) => {
   return response.data;
 };
 
+//delete recipe by recipe id
+const deleteFavRecipe = async (recipeId, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  //change url end point
+  const response = await axios.delete(`${API_URL}/fav/${recipeId}`, config);
+  return response.data;
+};
+
 //update recipe by recipe id
 const updateRecipe = async (recipeData, token) => {
+  localStorage.removeItem('profile');
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
   const response = await axios.put(
+    `${API_URL}/${recipeData._id}`,
+    recipeData,
+    config
+  );
+  return response.data;
+};
+
+//add recipe to favCollection
+const addToUserFav = async (recipeData, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.post(
     `${API_URL}/${recipeData._id}`,
     recipeData,
     config
@@ -104,5 +141,7 @@ const recipeService = {
   getRecipeDetail,
   deleteRecipe,
   updateRecipe,
+  addToUserFav,
+  deleteFavRecipe,
 };
 export default recipeService;

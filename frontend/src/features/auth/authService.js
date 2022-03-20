@@ -17,6 +17,7 @@ const login = async (userData) => {
   if (response.data) {
     localStorage.setItem('user', JSON.stringify(response.data));
   }
+  console.log(response.data);
   return response.data;
 };
 
@@ -24,9 +25,15 @@ const login = async (userData) => {
 const logout = () => localStorage.removeItem('user');
 
 //get username by id
-const getUsername = async (uid) => {
-  const response = await axios.get(`${API_URL}/${uid}`);
+const getUsername = async (id) => {
+  const response = await axios.get(`${API_URL}/${id}`);
   return response.data.name;
+};
+
+//get user fav collection by id
+const getUserFav = async (uid) => {
+  const response = await axios.get(`${API_URL}/${uid}`);
+  return response.data.favCollection;
 };
 
 const authService = {
@@ -34,6 +41,7 @@ const authService = {
   logout,
   login,
   getUsername,
+  getUserFav,
 };
 
 export default authService;

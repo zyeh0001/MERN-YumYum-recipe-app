@@ -64,6 +64,7 @@ const loginUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
+      favCollection: user.favCollection,
     });
   } else {
     res.status(401);
@@ -80,7 +81,7 @@ const getMe = asyncHandler(async (req, res) => {
 });
 
 //@desc     Get User name by user id
-//@route    /api/users/user-name
+//@route    /api/users/:id
 //access    Private (access with json web token)
 const getUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);

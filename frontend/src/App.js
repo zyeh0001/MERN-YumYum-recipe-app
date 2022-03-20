@@ -10,6 +10,8 @@ import RecipeList from './pages/RecipeList';
 import Profile from './pages/Profile';
 import Footer from './component/Footer';
 import PrivateRoute from './component/PrivateRoute';
+import NewRecipeModal from './component/NewRecipeModal';
+import EditRecipeModal from './component/EditRecipeModal';
 
 function App() {
   return (
@@ -27,6 +29,15 @@ function App() {
               <Route path='/recipe/:recipeId' element={<Recipe />} />
               <Route path='/profile' element={<PrivateRoute />}>
                 <Route path='/profile' element={<Profile />} />
+              </Route>
+              <Route path='/profile/create' element={<PrivateRoute />}>
+                <Route path='/profile/create' element={<NewRecipeModal />} />
+              </Route>
+              <Route path='/profile/edit/:recipeId' element={<PrivateRoute />}>
+                <Route
+                  path='/profile/edit/:recipeId'
+                  element={<EditRecipeModal />}
+                />
               </Route>
             </Routes>
           </main>

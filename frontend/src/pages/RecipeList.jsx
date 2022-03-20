@@ -9,11 +9,20 @@ function RecipeList() {
   const [text, setText] = useState('');
   const [limit, setLimit] = useState(10);
   const dispatch = useDispatch();
+  const [tmpRecipe, setTmpRecipe] = useState([]);
   const { recipes, isSuccess, isError, message } = useSelector(
     (state) => state.recipe
   );
 
+  // useEffect(() => {
+  //   dispatch(reset());
+  // }, []);
+
   useEffect(() => {
+    const searchText = localStorage.getItem('searchText');
+    if (searchText) {
+      setText(searchText);
+    }
     if (text !== '') {
       dispatch(searchRecipes({ text: text, limit: limit }));
     }
@@ -32,6 +41,7 @@ function RecipeList() {
     } else {
       console.log(limit);
       dispatch(searchRecipes({ text: text, limit: limit }));
+      localStorage.setItem('searchText', text);
       // setText('');
     }
   };
@@ -43,7 +53,6 @@ function RecipeList() {
 
   return (
     <>
-      {' '}
       <div className='grid grid-cols-1 md:grid-cols-4 mb-8 gap-8 mt-5'>
         <div className='col-span-2 col-start-2'>
           <form onSubmit={handleSubmit}>
@@ -68,6 +77,7 @@ function RecipeList() {
                 dispatch(reset());
                 setText('');
                 setLimit(10);
+                localStorage.removeItem('searchText');
               }}
               className='btn btn-md bg-purple-400 text-neutral hover:bg-purple-200'
             >
@@ -79,7 +89,11 @@ function RecipeList() {
       {recipes.length > 0 && (
         <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3 mb-7'>
           {recipes.map((recipe, i) => (
-            <RecipeItem key={i} recipe={recipe} recipeId={recipe.id} />
+            <RecipeItem
+              key={i}
+              recipe={recipe}
+              recipeId={recipe.id ? recipe.id : recipe._id}
+            />
           ))}
         </div>
       )}

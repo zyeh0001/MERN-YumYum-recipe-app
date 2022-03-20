@@ -8,6 +8,8 @@ const {
   updateRecipe,
   deleteRecipe,
   searchRecipes,
+  addToFav,
+  deleteFavItem,
 } = require('../controller/recipeController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -18,8 +20,10 @@ router
   .route('/:id')
   .get(getRecipe)
   .delete(protect, deleteRecipe)
-  .put(protect, updateRecipe);
+  .put(protect, updateRecipe)
+  .post(protect, addToFav);
 
 router.route('/search/recipe').post(searchRecipes);
+router.delete('/fav/:id', protect, deleteFavItem);
 
 module.exports = router;

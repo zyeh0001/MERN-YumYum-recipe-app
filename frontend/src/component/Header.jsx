@@ -21,6 +21,8 @@ function Header() {
   const onLogout = () => {
     dispatch(logout());
     dispatch(reset());
+    localStorage.removeItem('profile');
+    localStorage.removeItem('searchText');
     navigate('/login');
   };
 
@@ -68,7 +70,11 @@ function Header() {
             {user ? (
               <>
                 <button
-                  className='btn btn-ghost btn-sm btn-ontline'
+                  className={
+                    pathMatchRoute('/login')
+                      ? 'btn bg-purple-400 btn-sm btn-ontline text-neutral hover:bg-purple-200'
+                      : 'btn btn-ghost btn-sm btn-ontline '
+                  }
                   onClick={() => {
                     navigate('/profile');
                   }}
@@ -77,7 +83,11 @@ function Header() {
                   Profile
                 </button>
                 <button
-                  className='btn btn-ghost btn-sm btn-ontline'
+                  className={
+                    pathMatchRoute('/login')
+                      ? 'btn bg-purple-400 btn-sm btn-ontline text-neutral hover:bg-purple-200'
+                      : 'btn btn-ghost btn-sm btn-ontline'
+                  }
                   onClick={onLogout}
                 >
                   <FaSignOutAlt className='mr-1' />
@@ -90,8 +100,8 @@ function Header() {
                   to='/login'
                   className={
                     pathMatchRoute('/login')
-                      ? 'btn btn-secondary btn-sm  btn-ontline'
-                      : 'btn btn-ghost btn-sm btn-ontline'
+                      ? 'btn bg-purple-400 btn-sm btn-ontline text-neutral hover:bg-purple-200'
+                      : 'btn btn-ghost btn-sm btn-ontline '
                   }
                 >
                   <FaSignInAlt className='mr-1' /> SignIn
@@ -100,7 +110,7 @@ function Header() {
                   to='/register'
                   className={
                     pathMatchRoute('/register')
-                      ? 'btn btn-secondary btn-sm  btn-ontline'
+                      ? 'btn bg-purple-400 btn-sm  btn-ontline text-neutral hover:bg-purple-200'
                       : 'btn btn-ghost btn-sm btn-ontline'
                   }
                 >

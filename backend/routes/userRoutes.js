@@ -6,6 +6,7 @@ const {
   loginUser,
   getMe,
   getUser,
+  removeFav,
 } = require('../controller/userController');
 
 const { protect } = require('../middleware/authMiddleware');

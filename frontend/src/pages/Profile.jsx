@@ -3,65 +3,59 @@ import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '../component/Spinner';
 import {
   reset,
-  getRecipe,
   getRecipes,
   deleteRecipe,
+  deleteFavRecipe,
 } from '../features/recipe/recipeSlice';
-import NewRecipeModal from '../component/NewRecipeModal';
-import EditRecipeModal from '../component/EditRecipeModal';
+import { getUserFav } from '../features/auth/authSlice';
 import RecipeItem from '../component/recipeLayout/RecipeItem';
 import { ImProfile } from 'react-icons/im';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 function Profile() {
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   // const [editRecipeId, setEditRecipeId] = useState('');
   const { user } = useSelector((state) => state.auth);
   const [name] = useState(user.name);
   const [email] = useState(user.email);
-  const [refresh, setRefresh] = useState(false);
-  //open/close modal
-  const openModal = () => setModalIsOpen(true);
-  const closeModal = () => {
-    setModalIsOpen(false);
-    setRefresh(true);
-  };
-  const closeEditModal = () => {
-    setEditModalIsOpen(false);
-    setRefresh(true);
-  };
+  const navigate = useNavigate();
 
-  const { isLoading, createSuccess, isSuccess, isError, message, recipes } =
-    useSelector((state) => state.recipe);
+  const { isLoading, isSuccess, isError, message, recipes } = useSelector(
+    (state) => state.recipe
+  );
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(reset());
+    dispatch(getRecipes());
+    dispatch(getUserFav(user._id));
+    return () => {
+      dispatch(reset());
+    };
+  }, []);
 
   useEffect(() => {
     if (isError) {
       toast.error(message);
     }
-    return () => {
-      if (isSuccess) {
-        dispatch(reset());
-      }
-    };
-  }, [dispatch, isSuccess, isError, message, createSuccess, modalIsOpen]);
-
-  useEffect(() => {
-    dispatch(reset());
-    if (refresh === true) {
-      console.log('refresh');
-      dispatch(getRecipes());
-      setRefresh(false);
-    } else {
-      dispatch(getRecipes());
-    }
-  }, [refresh, dispatch]);
+  }, [isError, message]);
 
   const onDelete = (recipeId) => {
     dispatch(deleteRecipe(recipeId));
+    dispatch(deleteFavRecipe(recipeId));
+    if (isError) {
+      toast.error(message);
+    }
+    if (isSuccess) {
+      toast.success('Delete Successfully');
+    }
+  };
+
+  const onDeleteFav = (recipeId) => {
+    dispatch(deleteFavRecipe(recipeId));
+
     if (isError) {
       toast.error(message);
     }
@@ -71,9 +65,7 @@ function Profile() {
   };
 
   const onEdit = (recipeId) => {
-    setEditModalIsOpen(true);
-    dispatch(getRecipe(recipeId));
-    console.log(recipeId);
+    navigate(`/profile/edit/${recipeId}`);
   };
 
   if (isLoading) return <Spinner />;
@@ -95,43 +87,63 @@ function Profile() {
             <h2 className='text-2xl my-4'>Your Recipe: </h2>
           </div>
           <button
-            onClick={openModal}
+            onClick={() => navigate('/profile/create')}
             className='purple-btn my-4 mx-4 transition ease-out duration-500'
           >
             Create recipe
           </button>
-          <button
-            onClick={() => setIsEditMode((prev) => !prev)}
-            className='purple-btn ml-auto mx-4 transition ease-out duration-500'
-          >
-            Edit
-          </button>
+          {(recipes.length > 0 || user.favCollection.length > 0) && (
+            <button
+              onClick={() => setIsEditMode((prev) => !prev)}
+              className='purple-btn ml-auto mx-4 transition ease-out duration-500'
+            >
+              Edit
+            </button>
+          )}
         </div>
         {/* show created listing */}
-        <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
-          {recipes &&
-            recipes.map((recipe) => (
-              <RecipeItem
-                key={recipe._id}
-                recipe={recipe}
-                recipeId={recipe._id}
-                isEditMode={isEditMode}
-                onDelete={() => onDelete(recipe._id)}
-                onEdit={() => onEdit(recipe._id)}
-              />
-            ))}
-        </div>
-
-        <div className='flex'>
-          <div className='personal-detail'>
-            <h2 className='text-2xl my-4'>Your Favorite Recipes: </h2>
+        {recipes.length > 0 ? (
+          <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
+            {recipes &&
+              recipes.map((recipe) => (
+                <RecipeItem
+                  key={recipe._id}
+                  recipe={recipe}
+                  recipeId={recipe._id}
+                  isEditMode={isEditMode}
+                  onDelete={() => onDelete(recipe._id)}
+                  onEdit={() => onEdit(recipe._id)}
+                />
+              ))}
           </div>
+        ) : (
+          <p className='text-gray-400'>Create your first recipe! </p>
+        )}
+
+        <div className='flex flex-col mb-10 mt-10'>
+          <div>
+            <h2 className='text-2xl my-4'>Your Favorite Collection: </h2>
+          </div>
+          {user.favCollection.length > 0 ? (
+            <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
+              {user.favCollection &&
+                user.favCollection.map((collection) => (
+                  <RecipeItem
+                    key={collection._id}
+                    recipe={collection}
+                    recipeId={collection._id}
+                    isEditMode={isEditMode}
+                    onDelete={() => onDeleteFav(collection._id)}
+                  />
+                ))}
+            </div>
+          ) : (
+            <p className='text-gray-400'>
+              You don't have any collection yet...
+            </p>
+          )}
         </div>
       </main>
-      {/* create new recipe modal */}
-      <NewRecipeModal isOpen={modalIsOpen} onClose={closeModal} />
-      {/* edit recipe modal */}
-      <EditRecipeModal isOpen={editModalIsOpen} onClose={closeEditModal} />
     </div>
   );
 }
