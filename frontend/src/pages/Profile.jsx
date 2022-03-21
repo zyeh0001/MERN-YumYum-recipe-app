@@ -98,7 +98,7 @@ function Profile() {
           )}
         </div>
         {/* show created listing */}
-        {recipes.length > 0 ? (
+        {recipes?.length > 0 ? (
           <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
             {recipes &&
               recipes.map((recipe, i) => (
@@ -121,7 +121,7 @@ function Profile() {
             <h2 className='text-2xl my-4'>Your Favorite Collection: </h2>
           </div>
 
-          {favorite.length > 0 && (
+          {favorite?.length > 0 ? (
             <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
               {favorite &&
                 favorite.map((collection, i) => (
@@ -134,6 +134,10 @@ function Profile() {
                   />
                 ))}
             </div>
+          ) : (
+            <p className='text-gray-400'>
+              You don't have any favorite recipe yet{' '}
+            </p>
           )}
         </div>
       </main>
