@@ -88,7 +88,7 @@ function Profile() {
           >
             Create recipe
           </button>
-          {(recipes.length > 0 || user.favCollection.length > 0) && (
+          {((recipes || []).length > 0 || (favorite || []).length > 0) && (
             <button
               onClick={() => setIsEditMode((prev) => !prev)}
               className='purple-btn ml-auto mx-4 my-4  transition ease-out duration-500'
@@ -98,7 +98,7 @@ function Profile() {
           )}
         </div>
         {/* show created listing */}
-        {Object.keys(recipes).length > 0 ? (
+        {(recipes || []).length > 0 ? (
           <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
             {recipes &&
               recipes.map((recipe, i) => (
@@ -120,7 +120,7 @@ function Profile() {
           <div>
             <h2 className='text-2xl my-4'>Your Favorite Collection: </h2>
           </div>
-          {Object.keys(favorite).length > 0 ? (
+          {(favorite || []).length > 0 ? (
             <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
               {favorite &&
                 favorite.map((collection, i) => (

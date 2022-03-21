@@ -67,7 +67,7 @@ function RecipeList() {
             </div>
           </form>
         </div>
-        {Object.keys(recipes).length > 0 && (
+        {(recipes || []).length > 0 && (
           <div className='col-span-1 col-start-4'>
             <button
               onClick={() => {
@@ -83,7 +83,7 @@ function RecipeList() {
           </div>
         )}
       </div>
-      {Object.keys(recipes).length > 0 && (
+      {(recipes || []).length > 0 && (
         <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3 mb-7'>
           {recipes.map((recipe, i) => (
             <RecipeItem
@@ -94,7 +94,7 @@ function RecipeList() {
           ))}
         </div>
       )}
-      {Object.keys(recipes).length > 0 && (
+      {(recipes || []).length > 0 && (
         <div className='flex justify-center mb-10'>
           <button
             onClick={() => {
