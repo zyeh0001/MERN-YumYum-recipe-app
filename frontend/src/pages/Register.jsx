@@ -56,7 +56,7 @@ function Register() {
   if (isLoading) return <Spinner />;
 
   return (
-    <div className='container mt-10 flex flex-col items-center'>
+    <div className='container mt-10 flex flex-col items-center mb-10'>
       <section className='flex flex-col items-center'>
         <div className='text-5xl font-bold flex align-middle p-3 mb-2'>
           <FaUserPlus className='mr-2 inline' />
