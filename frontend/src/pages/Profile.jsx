@@ -98,7 +98,7 @@ function Profile() {
           )}
         </div>
         {/* show created listing */}
-        {recipes?.length > 0 ? (
+        {Object.keys(recipes).length > 0 ? (
           <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
             {recipes &&
               recipes.map((recipe, i) => (
@@ -120,8 +120,7 @@ function Profile() {
           <div>
             <h2 className='text-2xl my-4'>Your Favorite Collection: </h2>
           </div>
-
-          {favorite?.length > 0 ? (
+          {Object.keys(favorite).length > 0 ? (
             <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
               {favorite &&
                 favorite.map((collection, i) => (
