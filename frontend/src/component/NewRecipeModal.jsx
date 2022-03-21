@@ -31,9 +31,7 @@ function NewRecipeModal(props) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('useEffect');
     if (createSuccess) {
-      console.log('create success');
       toast.success('Recipe created');
       navigate('/profile');
     }
@@ -51,13 +49,11 @@ function NewRecipeModal(props) {
     try {
       setImageUploading(true);
       let imageUrl = '';
-      console.log(imageUrl);
       if (image) {
         const formData = new FormData();
         formData.append('file', image);
         formData.append('upload_preset', 'yumyum');
         formData.append('cloud_name', 'gaga-org');
-        console.log(formData);
         const dataRes = await axios.post(
           'https://api.cloudinary.com/v1_1/gaga-org/image/upload',
           formData
@@ -69,10 +65,9 @@ function NewRecipeModal(props) {
         ...formData,
         image: imageUrl,
       };
-      console.log(formDataClone);
       dispatch(createRecipe(formDataClone));
     } catch (error) {
-      console.log(error);
+      toast.error(error);
     }
   };
 
@@ -270,8 +265,6 @@ function NewRecipeModal(props) {
               required
             />
           </div>
-          {/* <p> {JSON.stringify(formData)}</p>
-            <p> {JSON.stringify(image)}</p> */}
           <hr />
           <div className='form-group mt-5'>
             <button className='btn btn-success btn-md mr-2 '>Submit</button>

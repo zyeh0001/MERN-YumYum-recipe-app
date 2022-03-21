@@ -10,6 +10,7 @@ const {
   searchRecipes,
   addToFav,
   deleteFavItem,
+  getUserFav,
 } = require('../controller/recipeController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -25,5 +26,6 @@ router
 
 router.route('/search/recipe').post(searchRecipes);
 router.delete('/fav/:id', protect, deleteFavItem);
+router.get('/fav/:id', protect, getUserFav);
 
 module.exports = router;

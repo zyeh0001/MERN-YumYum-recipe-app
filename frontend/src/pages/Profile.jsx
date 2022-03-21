@@ -6,8 +6,8 @@ import {
   getRecipes,
   deleteRecipe,
   deleteFavRecipe,
+  getUserFav,
 } from '../features/recipe/recipeSlice';
-import { getUserFav } from '../features/auth/authSlice';
 import RecipeItem from '../component/recipeLayout/RecipeItem';
 import { ImProfile } from 'react-icons/im';
 import { toast } from 'react-toastify';
@@ -15,15 +15,13 @@ import { useNavigate } from 'react-router-dom';
 
 function Profile() {
   const [isEditMode, setIsEditMode] = useState(false);
-  // const [editRecipeId, setEditRecipeId] = useState('');
   const { user } = useSelector((state) => state.auth);
   const [name] = useState(user.name);
   const [email] = useState(user.email);
   const navigate = useNavigate();
 
-  const { isLoading, isSuccess, isError, message, recipes } = useSelector(
-    (state) => state.recipe
-  );
+  const { isLoading, isSuccess, isError, message, recipes, favorite } =
+    useSelector((state) => state.recipe);
 
   const dispatch = useDispatch();
 
@@ -31,16 +29,15 @@ function Profile() {
     dispatch(reset());
     dispatch(getRecipes());
     dispatch(getUserFav(user._id));
-    return () => {
-      dispatch(reset());
-    };
-  }, []);
-
-  useEffect(() => {
     if (isError) {
       toast.error(message);
     }
-  }, [isError, message]);
+    return () => {
+      dispatch(reset());
+      localStorage.removeItem('favorite');
+    };
+    //eslint-disable-next-line
+  }, []);
 
   const onDelete = (recipeId) => {
     dispatch(deleteRecipe(recipeId));
@@ -55,7 +52,6 @@ function Profile() {
 
   const onDeleteFav = (recipeId) => {
     dispatch(deleteFavRecipe(recipeId));
-
     if (isError) {
       toast.error(message);
     }
@@ -95,7 +91,7 @@ function Profile() {
           {(recipes.length > 0 || user.favCollection.length > 0) && (
             <button
               onClick={() => setIsEditMode((prev) => !prev)}
-              className='purple-btn ml-auto mx-4 transition ease-out duration-500'
+              className='purple-btn ml-auto mx-4 my-4  transition ease-out duration-500'
             >
               Edit
             </button>
@@ -105,9 +101,9 @@ function Profile() {
         {recipes.length > 0 ? (
           <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
             {recipes &&
-              recipes.map((recipe) => (
+              recipes.map((recipe, i) => (
                 <RecipeItem
-                  key={recipe._id}
+                  key={i}
                   recipe={recipe}
                   recipeId={recipe._id}
                   isEditMode={isEditMode}
@@ -124,12 +120,13 @@ function Profile() {
           <div>
             <h2 className='text-2xl my-4'>Your Favorite Collection: </h2>
           </div>
-          {user.favCollection.length > 0 ? (
+
+          {favorite.length > 0 && (
             <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3'>
-              {user.favCollection &&
-                user.favCollection.map((collection) => (
+              {favorite &&
+                favorite.map((collection, i) => (
                   <RecipeItem
-                    key={collection._id}
+                    key={i}
                     recipe={collection}
                     recipeId={collection._id}
                     isEditMode={isEditMode}
@@ -137,10 +134,6 @@ function Profile() {
                   />
                 ))}
             </div>
-          ) : (
-            <p className='text-gray-400'>
-              You don't have any collection yet...
-            </p>
           )}
         </div>
       </main>

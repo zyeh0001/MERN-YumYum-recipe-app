@@ -3,10 +3,8 @@ const API_URL = '/api/recipes';
 const spoonacular_url = 'https://api.spoonacular.com/recipes';
 
 //create new recipe
-
 const createRecipe = async (recipeData, token) => {
   localStorage.removeItem('profile');
-  console.log('remove localstorage');
   //set up jwt
   const config = {
     headers: {
@@ -35,7 +33,7 @@ const getRecipes = async (token) => {
   }
 };
 
-//get single recipe
+//get single recipe from backend or api
 const getRecipe = async (recipeId) => {
   const response = await axios.get(`${API_URL}/${recipeId}`);
 
@@ -49,7 +47,7 @@ const getRecipe = async (recipeId) => {
   return response.data;
 };
 
-//delete recipe by recipe id
+//delete backend recipe by recipe id
 const deleteRecipe = async (recipeId, token) => {
   localStorage.removeItem('profile');
   const config = {
@@ -61,19 +59,19 @@ const deleteRecipe = async (recipeId, token) => {
   return response.data;
 };
 
-//delete recipe by recipe id
+//delete recipe from user favorite collection by recipe id
 const deleteFavRecipe = async (recipeId, token) => {
+  localStorage.removeItem('favorite');
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
-  //change url end point
   const response = await axios.delete(`${API_URL}/fav/${recipeId}`, config);
   return response.data;
 };
 
-//update recipe by recipe id
+//update backend recipe by recipe id
 const updateRecipe = async (recipeData, token) => {
   localStorage.removeItem('profile');
   const config = {
@@ -89,8 +87,9 @@ const updateRecipe = async (recipeData, token) => {
   return response.data;
 };
 
-//add recipe to favCollection
+//add recipe to user favCollection
 const addToUserFav = async (recipeData, token) => {
+  localStorage.removeItem('favorite');
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -104,13 +103,22 @@ const addToUserFav = async (recipeData, token) => {
   return response.data;
 };
 
+//get user favCollection
+const getUserFav = async (userId, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.get(`${API_URL}/fav/${userId}`, config);
+  return response.data;
+};
+
 //search recipe from spoonacular api
 const searchRecipes = async (searchText) => {
   var params = new URLSearchParams();
   params.append('text', searchText.text);
-  // console.log(params);
   const resFromMongo = await axios.post(`${API_URL}/search/recipe`, params);
-  // console.log(resFromMongo.data);
   let numbers;
   if (searchText.limit > resFromMongo.data.length) {
     numbers = searchText.limit - resFromMongo.data.length;
@@ -121,7 +129,6 @@ const searchRecipes = async (searchText) => {
   const resFromSpoon = await axios.get(
     `${spoonacular_url}/complexSearch?apiKey=${process.env.REACT_APP_RECIPE_API_KEY}&query=${searchText.text}&number=${numbers}`
   );
-  console.log(resFromSpoon.data.results);
   return resFromMongo.data.concat(resFromSpoon.data.results);
 };
 
@@ -143,5 +150,6 @@ const recipeService = {
   updateRecipe,
   addToUserFav,
   deleteFavRecipe,
+  getUserFav,
 };
 export default recipeService;

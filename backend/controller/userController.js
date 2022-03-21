@@ -10,7 +10,6 @@ const User = require('../models/userModel');
 //@route    /api/users
 //access    Public
 const registerUser = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const { name, email, password } = req.body;
 
   //Validation
@@ -80,7 +79,7 @@ const getMe = asyncHandler(async (req, res) => {
   res.status(200).json(user);
 });
 
-//@desc     Get User name by user id
+//@desc     Get User by user id
 //@route    /api/users/:id
 //access    Private (access with json web token)
 const getUser = asyncHandler(async (req, res) => {

@@ -9,14 +9,9 @@ function RecipeList() {
   const [text, setText] = useState('');
   const [limit, setLimit] = useState(10);
   const dispatch = useDispatch();
-  const [tmpRecipe, setTmpRecipe] = useState([]);
   const { recipes, isSuccess, isError, message } = useSelector(
     (state) => state.recipe
   );
-
-  // useEffect(() => {
-  //   dispatch(reset());
-  // }, []);
 
   useEffect(() => {
     const searchText = localStorage.getItem('searchText');
@@ -28,6 +23,7 @@ function RecipeList() {
     }
     //eslint-disable-next-line
   }, [limit]);
+
   useEffect(() => {
     if (isError) {
       toast.error(message);
@@ -39,11 +35,12 @@ function RecipeList() {
     if (text === '') {
       toast.error('Please Enter Something');
     } else {
-      console.log(limit);
       dispatch(searchRecipes({ text: text, limit: limit }));
       localStorage.setItem('searchText', text);
-      // setText('');
     }
+    // if (Object.keys(recipes).length === 0) {
+    //   toast.error('Recipe not found');
+    // }
   };
   const handleChange = (e) => {
     setText(e.target.value);
@@ -71,7 +68,7 @@ function RecipeList() {
           </form>
         </div>
         {recipes.length > 0 && (
-          <div>
+          <div className='col-span-1 col-start-4'>
             <button
               onClick={() => {
                 dispatch(reset());

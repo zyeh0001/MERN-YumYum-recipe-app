@@ -4,6 +4,7 @@ import recipeService from './recipeService';
 const initialState = {
   recipes: [],
   recipe: {},
+  favorite: [],
   isError: false,
   createSuccess: false,
   isSuccess: false,
@@ -58,7 +59,6 @@ export const getRecipes = createAsyncThunk(
     try {
       //get the token from user in auth user
       const token = thunkAPI.getState().auth.user.token;
-
       return await recipeService.getRecipes(token);
     } catch (error) {
       const message =
@@ -77,9 +77,6 @@ export const getRecipe = createAsyncThunk(
   'recipe/get',
   async (recipeId, thunkAPI) => {
     try {
-      //get the token from user in auth user
-      // const token = thunkAPI.getState().auth.user.token;
-
       return await recipeService.getRecipe(recipeId);
     } catch (error) {
       const message =
@@ -100,7 +97,6 @@ export const deleteRecipe = createAsyncThunk(
     try {
       //get the token from user in auth user
       const token = thunkAPI.getState().auth.user.token;
-
       return await recipeService.deleteRecipe(recipeId, token);
     } catch (error) {
       const message =
@@ -121,7 +117,6 @@ export const deleteFavRecipe = createAsyncThunk(
     try {
       //get the token from user in auth user
       const token = thunkAPI.getState().auth.user.token;
-
       return await recipeService.deleteFavRecipe(recipeId, token);
     } catch (error) {
       const message =
@@ -139,9 +134,26 @@ export const addToUserFav = createAsyncThunk(
   'recipe/addToFav',
   async (recipeData, thunkAPI) => {
     try {
-      console.log(recipeData);
       const token = thunkAPI.getState().auth.user.token;
       return await recipeService.addToUserFav(recipeData, token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+export const getUserFav = createAsyncThunk(
+  'recipe/getUserFav',
+  async (userId, thunkAPI) => {
+    try {
+      const token = thunkAPI.getState().auth.user.token;
+      return await recipeService.getUserFav(userId, token);
     } catch (error) {
       const message =
         (error.response &&
@@ -159,7 +171,6 @@ export const searchRecipes = createAsyncThunk(
   'recipe/search',
   async (searchText, thunkAPI) => {
     try {
-      console.log(searchText);
       return await recipeService.searchRecipes(searchText);
     } catch (error) {
       const message =
@@ -313,11 +324,27 @@ export const recipeSlice = createSlice({
         state.createSuccess = false;
         state.isSuccess = false;
       })
-      .addCase(deleteFavRecipe.fulfilled, (state) => {
+      .addCase(deleteFavRecipe.fulfilled, (state, action) => {
         state.isSuccess = true;
         state.isLoading = false;
+        state.favorite = action.payload;
       })
       .addCase(deleteFavRecipe.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(getUserFav.pending, (state) => {
+        state.isLoading = true;
+        state.createSuccess = false;
+        state.isSuccess = false;
+      })
+      .addCase(getUserFav.fulfilled, (state, action) => {
+        state.isSuccess = true;
+        state.isLoading = false;
+        state.favorite = action.payload;
+      })
+      .addCase(getUserFav.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

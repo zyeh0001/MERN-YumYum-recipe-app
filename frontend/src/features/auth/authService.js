@@ -17,7 +17,6 @@ const login = async (userData) => {
   if (response.data) {
     localStorage.setItem('user', JSON.stringify(response.data));
   }
-  console.log(response.data);
   return response.data;
 };
 
@@ -33,6 +32,7 @@ const getUsername = async (id) => {
 //get user fav collection by id
 const getUserFav = async (uid) => {
   const response = await axios.get(`${API_URL}/${uid}`);
+  localStorage.setItem('favorite', JSON.stringify(response.data.favCollection));
   return response.data.favCollection;
 };
 

@@ -2,85 +2,56 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import BackButton from '../component/BackButton';
 import Spinner from '../component/Spinner';
-import { getRecipe, addToUserFav } from '../features/recipe/recipeSlice';
+import {
+  getRecipe,
+  addToUserFav,
+  getUserFav,
+  deleteFavRecipe,
+} from '../features/recipe/recipeSlice';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AiOutlineClockCircle } from 'react-icons/ai';
 import { MdOutlinePeopleOutline } from 'react-icons/md';
 import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
-import { getUsername, getUserFav } from '../features/auth/authSlice';
+import { getUsername } from '../features/auth/authSlice';
 
 function Recipe() {
   const [activePad, setActivePad] = useState('summary');
   const [addedFav, setAddedFav] = useState(false);
   const dispatch = useDispatch();
-  const { recipe, isError, isLoading, message, isSuccess } = useSelector(
-    (state) => state.recipe
-  );
+  const { recipe, isError, isLoading, message, isSuccess, favorite } =
+    useSelector((state) => state.recipe);
   const { user, username } = useSelector((state) => state.auth);
   const { recipeId } = useParams();
 
+  //Fetch user recipes and user fav collection
   useEffect(() => {
     if (isError) {
       toast.error(message);
     }
     dispatch(getRecipe(recipeId));
-
+    dispatch(getUserFav(user._id));
     //eslint-disable-next-line
   }, [isError, message, recipeId]);
 
+  //Fetch username for recipe author
   useEffect(() => {
-    dispatch(getUserFav(user._id));
-    if (recipe.user && username === null) {
+    if (recipe.user) {
       dispatch(getUsername(recipe.user));
     }
-  }, [dispatch, recipe.user, user._id, username]);
+  }, [recipe.user, dispatch]);
 
-  // useEffect(() => {
-  //   const addToFav = (recipe) => {
-  //     //handle add to fav
-  //     dispatch(addToUserFav(recipe));
-  //     if (isSuccess) {
-  //       toast.success('Added to Favorite');
-  //     }
-  //   };
-
-  //   if (addedFav) {
-  //     const addItem = {
-  //       _id: recipeId,
-  //       user: recipe.user ? recipe.user : null,
-  //       sourceUrl: recipe.sourceUrl ? recipe.sourceUrl : null,
-  //       title: recipe.title,
-  //       image: recipe.image,
-  //       summary: recipe.summary,
-  //       readyInMinutes: recipe.readyInMinutes,
-  //       servings: recipe.servings,
-  //       ingredients: recipe.ingredients
-  //         ? recipe.ingredients
-  //         : recipe.extendedIngredients,
-  //       steps: recipe.steps ? recipe.steps : recipe.instructions,
-  //     };
-  //     // console.log(addItem);
-  //     addToFav(addItem);
-  //   } else {
-  //     //handle delete fav
-  //     // console.log(addedFav);
-  //     // console.log('delete');
-  //   }
-  //   //eslint-disable-next-line
-  // }, [addedFav, recipeId]);
-
+  //Fetch favCollection to check is Fav or not
   useEffect(() => {
-    const isAlreadyFav = checkIfFav(user.favCollection, recipeId);
-    console.log(`isAlreadyFav: ${isAlreadyFav}`);
+    const isAlreadyFav = checkIfFav(favorite, recipeId);
     if (isAlreadyFav) {
       setAddedFav(true);
     }
+    //eslint-disable-next-line
   }, []);
 
   const checkIfFav = (favCollection, recipeId) => {
     let isAlreadyFav = false;
-    console.log(favCollection);
     favCollection.forEach((favItem) => {
       if (favItem._id === recipeId) {
         isAlreadyFav = true;
@@ -90,7 +61,16 @@ function Recipe() {
     return isAlreadyFav;
   };
 
+  const handleFav = () => {
+    if (addedFav) {
+      onDeleteFav(recipeId);
+    } else {
+      addToFav();
+    }
+  };
+
   const addToFav = () => {
+    localStorage.removeItem('favorite');
     const addItem = {
       _id: recipeId,
       user: recipe.user ? recipe.user : null,
@@ -112,13 +92,28 @@ function Recipe() {
     }
   };
 
+  const onDeleteFav = (recipeId) => {
+    dispatch(deleteFavRecipe(recipeId));
+    if (isError) {
+      toast.error(message);
+    }
+    if (isSuccess) {
+      toast.success('Delete Successfully');
+    }
+  };
+
   if (isLoading) return <Spinner />;
 
-  if (isError) return <h3>Something went wrong</h3>;
+  if (isError)
+    return (
+      <h3 text-3xl mx-auto>
+        Something went wrong...
+      </h3>
+    );
 
   return (
     <div className='mt-5 mb-7'>
-      <BackButton url={recipe.imageType ? '/recipe-list' : '/profile'} />
+      <BackButton />
       <div className='grid sm:grid-cols-2 gap-2 sm:gap-5 mt-5'>
         <div>
           <div className='flex'>
@@ -144,7 +139,7 @@ function Recipe() {
           />
         </div>
         <div>
-          <div className='mb-3 -mt-2 flex space-x-5'>
+          <div className='mb-3 mt-5 sm:-mt-2 flex space-x-5'>
             <button
               onClick={() => setActivePad('summary')}
               className={
@@ -176,10 +171,10 @@ function Recipe() {
                 className='mt-3'
                 onClick={() => {
                   setAddedFav((prev) => !prev);
-                  addToFav();
+                  handleFav();
                 }}
               >
-                {addedFav === true ? (
+                {addedFav ? (
                   <AiFillHeart className='text-xl text-red-400' />
                 ) : (
                   <AiOutlineHeart className='text-xl ' />
@@ -210,13 +205,13 @@ function Recipe() {
             </div>
           )}
 
-          {/* instructions */}
+          {/* Instructions */}
 
           {activePad === 'instructions' && (
             <div className=' border-2 border-neutral shadow-sm rounded-md p-10 flex flex-col'>
               <h1 className='text-xl fond-bold mb-1'>Ingredients: </h1>
               <div>
-                {recipe.ingredients ? (
+                {recipe.ingredients && (
                   <ul className='grid grid-cols-2'>
                     {recipe.ingredients.map((ingredient, i) => {
                       if (ingredient === '') return null;
@@ -229,7 +224,8 @@ function Recipe() {
                       }
                     })}
                   </ul>
-                ) : (
+                )}
+                {recipe.extendedIngredients && (
                   <ul className='grid grid-cols-2'>
                     {recipe.extendedIngredients.map((ingredient, i) => (
                       <li key={i} className='list-disc list-inside'>
@@ -242,11 +238,13 @@ function Recipe() {
               <hr className='border-1 border-gray-600 my-3' />
 
               <h1 className='text-xl fond-bold mb-1'>Steps:</h1>
-              {recipe.instructions ? (
+              {recipe.instructions && (
                 <p
                   dangerouslySetInnerHTML={{ __html: recipe.instructions }}
                 ></p>
-              ) : (
+              )}
+
+              {recipe.steps && (
                 <ol className='flex flex-col space-y-1'>
                   {recipe.steps.map((step, i) => {
                     if (step === '') return null;

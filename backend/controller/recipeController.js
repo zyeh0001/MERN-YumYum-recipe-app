@@ -5,7 +5,7 @@ const Recipe = require('../models/recipeModel');
 
 //@desc     Get all recipes for user
 //@route    GET /api/recipes
-//access    Private (access with json web token)
+//access    Private
 const getRecipes = asyncHandler(async (req, res) => {
   //get the user id in the JWT
   const user = await User.findById(req.user.id);
@@ -15,9 +15,6 @@ const getRecipes = asyncHandler(async (req, res) => {
   }
   const recipe = await Recipe.find({ user: req.user.id });
   res.status(200).json(recipe);
-
-  //test
-  //   res.send('getRecipes');
 });
 
 //@desc     Get all recipes by search text
@@ -25,35 +22,20 @@ const getRecipes = asyncHandler(async (req, res) => {
 //access    public
 const searchRecipes = asyncHandler(async (req, res) => {
   const s = req.body.text;
-  console.log(s);
   const regex = new RegExp(s, 'i'); // i for case insensitive
   const recipes = await Recipe.find({ title: { $regex: regex } });
   res.status(200).json(recipes);
-
-  //test
-  // res.send('searchRecipes');
 });
 
 //@desc     Get single recipe
 //@route    GET /api/recipes/:id
 //access    Private (access with json web token)
 const getRecipe = asyncHandler(async (req, res) => {
-  //get the user id in the JWT
-  // const user = await User.findById(req.user.id);
-  // if (!user) {
-  //   res.status(401);
-  //   throw new Error('User not found');
-  // }
-
   const recipe = await Recipe.findById(req.params.id);
   if (!recipe) {
     res.status(404);
     throw new Error('Recipe not found');
   }
-  // if (recipe.user.toString() !== req.user.id) {
-  //   res.status(401);
-  //   throw new Error('User Not Authorized');
-  // }
   res.status(200).json(recipe);
 });
 
@@ -85,7 +67,6 @@ const createRecipe = asyncHandler(async (req, res) => {
 
   // Get user using the id in the JWT
   const user = await User.findById(req.user.id);
-
   if (!user) {
     res.status(401);
     throw new Error('User not found');
@@ -103,8 +84,6 @@ const createRecipe = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json(recipe);
-  //test
-  //   res.send('createRecipes');
 });
 
 //@desc     add Recipe to user Fav collection
@@ -120,19 +99,8 @@ const addToFav = asyncHandler(async (req, res) => {
     ingredients,
     image,
   } = req.body;
-  if (
-    !title ||
-    !summary ||
-    !steps ||
-    !servings ||
-    !readyInMinutes ||
-    !ingredients ||
-    !image
-  ) {
-    res.status(400);
-    throw new Error('Please input all field');
-  }
-  // Get user using the id in the JWT
+
+  //Prepare data to update
   const favItem = {
     _id: req.params.id,
     title,
@@ -145,25 +113,33 @@ const addToFav = asyncHandler(async (req, res) => {
     image,
   };
 
-  const user = await User.updateOne(
-    { _id: req.user.id },
-    { $push: { favCollection: favItem } }
-  );
+  //check if exist
+  const user = await User.findById(req.user.id);
+  user.favCollection.forEach((recipe) => {
+    if (recipe._id === favItem._id) {
+      res.status(401);
+      throw new Error('Already in the Fav list');
+    }
+  });
+
   if (!user) {
     res.status(401);
     throw new Error('User not found');
   }
-  res.send(user);
+
+  await User.updateOne(
+    { _id: req.user.id },
+    { $push: { favCollection: favItem } }
+  );
+
+  const updatedFavorite = await User.find({ user: req.user.id });
+  res.send(updatedFavorite.favCollection);
 });
 
 //@desc     delete recipe from favCollection
 //@route    /api/users/collection/:id
 //access    Private (access with json web token)
 const deleteFavItem = asyncHandler(async (req, res) => {
-  // console.log('user id');
-  // console.log(req.user.id);
-  // console.log('param id');
-  // console.log(req.params.id);
   const user = await User.updateOne(
     { _id: req.user.id },
     { $pull: { favCollection: { _id: req.params.id } } }
@@ -171,10 +147,22 @@ const deleteFavItem = asyncHandler(async (req, res) => {
 
   if (!user) {
     res.status(404);
+    throw new Error('Recipe not found');
+  }
+
+  const updatedFavorite = await User.findById(req.user.id);
+  res.status(200).json(updatedFavorite.favCollection);
+});
+
+const getUserFav = asyncHandler(async (req, res) => {
+  //get the user id in the JWT
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
     throw new Error('user not found');
   }
 
-  res.status(200).json(user);
+  res.status(200).json(user.favCollection);
 });
 
 //@desc     Delete User recipe
@@ -237,4 +225,5 @@ module.exports = {
   searchRecipes,
   addToFav,
   deleteFavItem,
+  getUserFav,
 };

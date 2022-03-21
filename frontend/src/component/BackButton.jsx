@@ -1,12 +1,13 @@
 import React from 'react';
 import { FaArrowCircleLeft } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-function BackButton({ url }) {
+function BackButton() {
+  const navigate = useNavigate();
   return (
-    <Link to={url} className='btn btn-secondary btn-sm'>
+    <button onClick={() => navigate(-1)} className='btn btn-secondary btn-sm'>
       <FaArrowCircleLeft className='mr-1' /> Back
-    </Link>
+    </button>
   );
 }
 

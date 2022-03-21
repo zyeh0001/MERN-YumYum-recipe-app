@@ -32,13 +32,14 @@ function EditRecipeModal(props) {
   const { recipeId } = useParams();
   const navigate = useNavigate();
 
+  //fetch recipe detail
   useEffect(() => {
     dispatch(getRecipe(recipeId));
   }, [dispatch, recipeId]);
 
+  //fill in form with recipe detail
   useEffect(() => {
     if (Object.keys(recipe).length !== 0) {
-      console.log('set form data');
       setFormData({
         ...recipe,
         ingredients: [...recipe.ingredients, ''],
@@ -79,10 +80,9 @@ function EditRecipeModal(props) {
         ...formData,
         image: imageUrl,
       };
-      console.log(formDataClone);
       dispatch(updateRecipe(formDataClone));
     } catch (error) {
-      console.log(error);
+      toast.error(error);
     }
   };
 
