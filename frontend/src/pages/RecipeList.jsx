@@ -9,7 +9,7 @@ function RecipeList() {
   const [text, setText] = useState('');
   const [limit, setLimit] = useState(10);
   const dispatch = useDispatch();
-  const { recipes, isSuccess, isError, message } = useSelector(
+  const { recipes, isSuccess, isError, message, isLoading } = useSelector(
     (state) => state.recipe
   );
 
@@ -28,7 +28,10 @@ function RecipeList() {
     if (isError) {
       toast.error(message);
     }
-  }, [isError, isSuccess, message]);
+    // if ((recipes || []).length === 0 && isSuccess) {
+    //   toast.error('Recipe not found');
+    // }
+  }, [isError, isSuccess, message, recipes]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,9 +41,6 @@ function RecipeList() {
       dispatch(searchRecipes({ text: text, limit: limit }));
       localStorage.setItem('searchText', text);
     }
-    // if (Object.keys(recipes).length === 0) {
-    //   toast.error('Recipe not found');
-    // }
   };
   const handleChange = (e) => {
     setText(e.target.value);
@@ -83,7 +83,7 @@ function RecipeList() {
           </div>
         )}
       </div>
-      {(recipes || []).length > 0 && (
+      {(recipes || []).length > 0 ? (
         <div className='grid lg:grid-cols-5 md:grid-cols-2 gap-4 mt-3 mb-7'>
           {recipes.map((recipe, i) => (
             <RecipeItem
@@ -93,7 +93,12 @@ function RecipeList() {
             />
           ))}
         </div>
+      ) : (
+        <h3 className='text-gray-500 text-2xl text-center'>
+          No recipe yet, start searching...
+        </h3>
       )}
+      {isLoading && <h3>Loading...</h3>}
       {(recipes || []).length > 0 && (
         <div className='flex justify-center mb-10'>
           <button
